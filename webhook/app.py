@@ -36,4 +36,4 @@ def check_if_file_exists(bucket_name, file_name):
         raise  # Bỏ qua các lỗi khác
 
 if __name__ == '__main__':
-     app.run(host='localhost', debug=True, port=5000)
+     app.run(host='0.0.0.0', debug=True, port=5000)
