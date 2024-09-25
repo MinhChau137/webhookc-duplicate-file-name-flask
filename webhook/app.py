@@ -36,4 +36,4 @@ def check_if_file_exists(bucket_name, file_name):
         raise  # Bỏ qua các lỗi khác
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
