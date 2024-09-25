@@ -10,7 +10,7 @@ socketio = SocketIO(app)
 minio_client = Minio(
     "localhost:9000",  # Địa chỉ MinIO
     access_key="minioadmin",
-    secret_key="minioadmin",
+    secret_key="minioadminpassword",
     secure=False
 )
 
