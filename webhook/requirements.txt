@@ -1,5 +1,4 @@
 Flask
 Flask-SocketIO
 requests
-Minio
-S3Error
+minio
