@@ -5,7 +5,7 @@ from minio.error import S3Error
 app = Flask(__name__)
 
 client = Minio(
-    "localhost:9000",
+    "10.39.153.13:9000",
     access_key="minioadmin",
     secret_key="minioadminpassword",
     secure=False
