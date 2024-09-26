@@ -56,4 +56,4 @@ def confirm_upload():
     return render_template('index.html', message=f"File '{file_name}' đã được upload thành công vào bucket '{bucket_name}'.")
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000, host='10.39.153.13')
