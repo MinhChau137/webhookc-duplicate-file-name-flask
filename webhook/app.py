@@ -1,39 +1,59 @@
-from flask import Flask, request
-from flask_socketio import SocketIO
+from flask import Flask, request, render_template
 from minio import Minio
 from minio.error import S3Error
 
 app = Flask(__name__)
-socketio = SocketIO(app)
 
-# Khởi tạo client MinIO
-minio_client = Minio(
-    "localhost:9000",  # Địa chỉ MinIO
+client = Minio(
+    "localhost:9000",
     access_key="minioadmin",
-    secret_key="minioadminpassword",
+    secret_key="minioadmin",
     secure=False
 )
 
-@app.route('/notify', methods=['POST'])
-def notify():
-    data = request.json
-    if 'Records' in data:
-        for record in data['Records']:
-            if record['eventName'] == 'PutObject':
-                file_name = record['s3']['object']['key']
-                if check_if_file_exists(record['s3']['bucket']['name'], file_name):
-                    socketio.emit('file_duplicate', {'file_name': file_name})
-    return '', 200
-
-def check_if_file_exists(bucket_name, file_name):
+def check_file_exists(bucket_name, file_name):
     try:
-        # Kiểm tra file đã tồn tại bằng cách lấy thông tin đối tượng
-        minio_client.stat_object(bucket_name, file_name)
-        return True  # File tồn tại
-    except S3Error as e:
-        if e.code == 'NoSuchKey':
-            return False  # File không tồn tại
-        raise  # Bỏ qua các lỗi khác
+        client.stat_object(bucket_name, file_name)
+        return True
+    except S3Error as exc:
+        if exc.code == "NoSuchKey":
+            return False
+        else:
+            print("Error:", exc)
+            return None
+
+def upload_file(bucket_name, file_name, file_path):
+    try:
+        client.fput_object(bucket_name, file_name, file_path)
+        print(f"File '{file_name}' uploaded successfully to bucket '{bucket_name}'.")
+    except S3Error as exc:
+        print(f"Error uploading file '{file_name}':", exc)
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        file = request.files['file']
+        bucket_name = request.form['bucket_name']  # Lấy tên bucket từ người dùng
+        file_name = file.filename
+        file_path = f"/tmp/{file_name}"
+        file.save(file_path)
+
+        # Kiểm tra sự tồn tại của file trong bucket
+        if check_file_exists(bucket_name, file_name):
+            return render_template('index.html', message=f"File '{file_name}' đã tồn tại trong bucket '{bucket_name}'. Bạn có muốn upload đè không?", file_name=file_name, file_path=file_path, bucket_name=bucket_name)
+        else:
+            upload_file(bucket_name, file_name, file_path)
+            return render_template('index.html', message=f"File '{file_name}' đã được upload thành công vào bucket '{bucket_name}'.")
+    
+    return render_template('index.html')
+
+@app.route('/confirm_upload', methods=['POST'])
+def confirm_upload():
+    file_name = request.form['file_name']
+    file_path = request.form['file_path']
+    bucket_name = request.form['bucket_name']  # Lấy bucket name từ request
+    upload_file(bucket_name, file_name, file_path)
+    return render_template('index.html', message=f"File '{file_name}' đã được upload thành công vào bucket '{bucket_name}'.")
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)
+    app.run(debug=True, port=5000, allow_unsafe_werzeug=True)

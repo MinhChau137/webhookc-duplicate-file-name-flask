@@ -3,17 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MinIO File Upload Alerts</title>
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <title>MinIO File Upload</title>
 </head>
 <body>
-    <h1>MinIO File Upload Alerts</h1>
-    <script>
-        const socket = io('http://<your-server-ip>:5000');  // Địa chỉ Webhook server
+    <h1>Upload file lên MinIO</h1>
 
-        socket.on('file_duplicate', function(data) {
-            alert('File "' + data.file_name + '" đã tồn tại!');
-        });
-    </script>
+    <form action="/" method="POST" enctype="multipart/form-data">
+        <label for="bucket_name">Tên Bucket:</label>
+        <input type="text" id="bucket_name" name="bucket_name" required>
+        <br><br>
+        <input type="file" name="file">
+        <button type="submit">Upload</button>
+    </form>
+
+    {% if message %}
+        <p>{{ message }}</p>
+        {% if file_name and file_path %}
+            <form action="/confirm_upload" method="POST">
+                <input type="hidden" name="file_name" value="{{ file_name }}">
+                <input type="hidden" name="file_path" value="{{ file_path }}">
+                <input type="hidden" name="bucket_name" value="{{ bucket_name }}">
+                <button type="submit">Xác nhận upload đè</button>
+            </form>
+        {% endif %}
+    {% endif %}
 </body>
 </html>
